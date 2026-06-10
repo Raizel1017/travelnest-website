@@ -1,0 +1,200 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TravelNest — Travel Mood">
+  <title>TravelNest — Travel Mood</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <style>
+    .mood-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+    .mood-col {
+      padding: 40px 36px;
+      border-right: 1px solid var(--border);
+    }
+    .mood-col:last-child { border-right: none; }
+    .col-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (max-width: 760px) {
+      .mood-layout { grid-template-columns: 1fr; }
+      .mood-col { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="masthead">
+    <span class="eyebrow">Ambience &amp; Tracking</span>
+    <h1>Travel Mood</h1>
+    <p>Set the atmosphere with ambient sounds, and keep track of where you've been and where you're headed.</p>
+  </div>
+
+  <div class="mood-layout">
+    <!-- Sounds -->
+    <div class="mood-col">
+      <div class="col-label">Ambient Sounds</div>
+      <p style="font-size:0.88rem;margin-bottom:16px;">Toggle sounds to set the mood for your travel daydreaming. Uses the Web Audio API to simulate environments.</p>
+      <div class="sound-grid">
+        <button class="sound-btn" id="btn-ocean" onclick="toggleSound('ocean')">
+          <span class="s-icon">🌊</span>
+          <span><span class="s-label">Ocean Waves</span></span>
+          <span class="s-dot"></span>
+        </button>
+        <button class="sound-btn" id="btn-forest" onclick="toggleSound('forest')">
+          <span class="s-icon">🌿</span>
+          <span><span class="s-label">Forest</span></span>
+          <span class="s-dot"></span>
+        </button>
+        <button class="sound-btn" id="btn-city" onclick="toggleSound('city')">
+          <span class="s-icon">🏙️</span>
+          <span><span class="s-label">City Ambience</span></span>
+          <span class="s-dot"></span>
+        </button>
+        <button class="sound-btn" id="btn-rain" onclick="toggleSound('rain')">
+          <span class="s-icon">🌧️</span>
+          <span><span class="s-label">Rain</span></span>
+          <span class="s-dot"></span>
+        </button>
+      </div>
+      <p id="sound-status" style="font-size:0.78rem;color:var(--muted);margin-top:14px;min-height:18px;"></p>
+    </div>
+
+    <!-- Tracker -->
+    <div class="mood-col">
+      <div class="col-label">Destination Tracker</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:24px;">
+        <div style="padding-right:20px;border-right:1px solid var(--border);">
+          <h2 style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:12px;">Mark Visited</h2>
+          <div class="form-group" style="margin-bottom:8px;">
+            <select id="visited-sel">
+              <option value="">— Select —</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="markVisited()" style="width:100%;justify-content:center;">Mark as visited</button>
+        </div>
+        <div style="padding-left:20px;">
+          <h3 style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:12px;">Mark Planned</h3>
+          <div class="form-group" style="margin-bottom:8px;">
+            <select id="planned-sel">
+              <option value="">— Select —</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="markPlanned()" style="width:100%;justify-content:center;">Mark as planned</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <h3 style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">✓ Visited</h3>
+          <div id="visited-list" style="font-size:0.85rem;"></div>
+        </div>
+        <div>
+          <h3 style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">◎ Planned</h3>
+          <div id="planned-list" style="font-size:0.85rem;"></div>
+        </div>
+      </div>
+
+      <button onclick="clearTracking()" style="margin-top:24px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:0.75rem;padding:6px 14px;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;border-radius:2px;">Clear all tracking</button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/components.js"></script>
+  <script>
+    // Populate selects
+    DESTINATIONS.forEach(d => {
+      ['visited-sel','planned-sel'].forEach(id => {
+        const o = document.createElement('option');
+        o.value = d.name; o.textContent = d.name + ', ' + d.country;
+        document.getElementById(id).appendChild(o);
+      });
+    });
+
+    // ── AUDIO ──
+  
+  let currentAudio = null;
+
+  function toggleSound(type) {
+    // If same button clicked again, stop it
+    if (currentAudio && currentAudio._type === type) {
+    currentAudio.pause();
+    currentAudio = null;
+    document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('sound-status').textContent = '';
+    return;
+    }
+
+  // Stop whatever is playing
+    if (currentAudio) {
+    currentAudio.pause();
+    document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    // Play new sound
+    const audio = new Audio('audio/' + type + '.mp3');
+    audio.loop = true;
+    audio.volume = 0.5;
+    audio.play();
+    audio._type = type;
+    currentAudio = audio;
+
+    document.getElementById('btn-' + type).classList.add('active');
+    document.getElementById('sound-status').textContent = 'Playing: ' + type + '. Click again to stop.';
+  }
+
+    // ── TRACKER ──
+    function markVisited() {
+      const n = document.getElementById('visited-sel').value; if (!n) return;
+      const list = loadFromStorage('tn_visited', []);
+      if (!list.includes(n)) { list.push(n); saveToStorage('tn_visited', list); }
+      renderTracker(); showToast(n + ' marked as visited.');
+    }
+    function markPlanned() {
+      const n = document.getElementById('planned-sel').value; if (!n) return;
+      const list = loadFromStorage('tn_planned', []);
+      if (!list.includes(n)) { list.push(n); saveToStorage('tn_planned', list); }
+      renderTracker(); showToast(n + ' marked as planned.');
+    }
+    function renderTracker() {
+      const v = loadFromStorage('tn_visited', []);
+      const p = loadFromStorage('tn_planned', []);
+      const make = (list, key) => list.length === 0
+        ? '<p style="color:var(--muted);font-size:0.82rem;">None yet.</p>'
+        : list.map(n => `
+          <div class="tracker-item">
+            <span class="ti-name">${n}</span>
+            <button onclick="removeTracked('${key}','${n}')" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;">✕</button>
+          </div>`).join('');
+      document.getElementById('visited-list').innerHTML = make(v, 'tn_visited');
+      document.getElementById('planned-list').innerHTML = make(p, 'tn_planned');
+    }
+    function removeTracked(key, name) {
+      saveToStorage(key, loadFromStorage(key, []).filter(n => n !== name));
+      renderTracker();
+    }
+    function clearTracking() {
+      saveToStorage('tn_visited', []); saveToStorage('tn_planned', []);
+      renderTracker(); showToast('Tracking cleared.');
+    }
+    renderTracker();
+  </script>
+</body>
+</html>

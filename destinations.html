@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TravelNest — Explore Destinations">
+  <title>TravelNest — Destinations</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <style>
+    .dest-grid {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px 48px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="masthead">
+    <span class="eyebrow">Browse &amp; Filter</span>
+    <h1>Destinations</h1>
+    <p>Click any destination to see full details, top attractions, and cost breakdowns.</p>
+  </div>
+
+  <div class="filters-bar">
+    <div class="filters-inner">
+      <input type="text" id="search-input" placeholder="Search by name or country…" aria-label="Search">
+      <select id="continent-filter">
+        <option value="">All Continents</option>
+        <option>Europe</option>
+        <option>Asia</option>
+        <option>North America</option>
+        <option>South America</option>
+        <option>Africa</option>
+        <option>Australia</option>
+      </select>
+      <select id="type-filter">
+        <option value="">All Types</option>
+        <option value="relaxation">Relaxation</option>
+        <option value="cultural">Cultural</option>
+        <option value="adventure">Adventure</option>
+        <option value="nature">Nature</option>
+      </select>
+      <select id="budget-filter">
+        <option value="">All Budgets</option>
+        <option value="low">Budget</option>
+        <option value="medium">Mid-range</option>
+        <option value="high">Luxury</option>
+      </select>
+      <span class="filter-count" id="filter-count">10 destinations</span>
+    </div>
+  </div>
+
+  <div class="dest-grid">
+    <div class="grid-3" id="dest-grid" style="margin-top:24px;"></div>
+    <p id="no-results" style="display:none;color:var(--muted);padding:40px 0;text-align:center;font-size:0.9rem;">No destinations match your filters.</p>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <img class="modal-img" id="modal-img" src="" alt="">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow" id="modal-eyebrow"></div>
+          <h2 id="modal-title" style="margin-top:4px;"></h2>
+        </div>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/components.js"></script>
+  <script>
+    const grid = document.getElementById('dest-grid');
+    const noRes = document.getElementById('no-results');
+    const countEl = document.getElementById('filter-count');
+
+    function buildCards(list) {
+      grid.innerHTML = '';
+      noRes.style.display = list.length === 0 ? 'block' : 'none';
+      countEl.textContent = list.length + ' destination' + (list.length !== 1 ? 's' : '');
+
+      list.forEach((d, i) => {
+        const div = document.createElement('div');
+        div.className = 'card dest-card';
+        div.innerHTML = `
+          <div class="card-img">
+            <img src="${d.img}" alt="${d.name}" loading="lazy">
+            <span class="card-num">${String(i+1).padStart(2,'0')}</span>
+          </div>
+          <div class="card-body">
+            <h3>${d.name}</h3>
+            <p class="sub">${d.country} · ${d.continent}</p>
+          </div>
+          <div class="card-foot">
+            <span>${d.type}</span>
+            <span class="tag tag-red" style="font-size:0.68rem;">${d.budget}</span>
+          </div>
+        `;
+        div.addEventListener('click', () => openModal(d));
+        grid.appendChild(div);
+      });
+    }
+
+    function filter() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const cont = document.getElementById('continent-filter').value;
+      const type = document.getElementById('type-filter').value;
+      const budget = document.getElementById('budget-filter').value;
+      buildCards(DESTINATIONS.filter(d =>
+        (d.name.toLowerCase().includes(q) || d.country.toLowerCase().includes(q)) &&
+        (!cont   || d.continent === cont) &&
+        (!type   || d.type === type) &&
+        (!budget || d.budget === budget)
+      ));
+    }
+
+    document.getElementById('search-input').addEventListener('input', filter);
+    document.getElementById('continent-filter').addEventListener('change', filter);
+    document.getElementById('type-filter').addEventListener('change', filter);
+    document.getElementById('budget-filter').addEventListener('change', filter);
+
+    function openModal(d) {
+      document.getElementById('modal-img').src = d.img;
+      document.getElementById('modal-img').alt = d.name;
+      document.getElementById('modal-eyebrow').textContent = d.continent + ' · ' + d.type;
+      document.getElementById('modal-title').textContent = d.name + ', ' + d.country;
+
+      const pills = d.attractions.map(a => `<span class="attr-pill">${a}</span>`).join('');
+      const rows = d.costs.map(c => `<tr><td>${c.item}</td><td>$${c.low}</td><td>$${c.high}</td></tr>`).join('');
+
+      document.getElementById('modal-body').innerHTML = `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <span class="tag tag-red">${d.type}</span>
+          <span class="tag tag-grey">${d.budget} budget</span>
+          <span class="tag tag-white">${d.continent}</span>
+        </div>
+        <p style="font-size:0.9rem;line-height:1.7;color:var(--muted);">${d.desc}</p>
+        <h3 style="margin:20px 0 10px;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Top Attractions</h3>
+        <div>${pills}</div>
+        <h3 style="margin:20px 0 10px;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Cost Breakdown</h3>
+        <table>
+          <thead><tr><th>Item</th><th>From</th><th>Up to</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+      document.getElementById('modal-overlay').classList.add('open');
+    }
+
+    document.getElementById('modal-close').addEventListener('click', () =>
+      document.getElementById('modal-overlay').classList.remove('open')
+    );
+    document.getElementById('modal-overlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal-overlay'))
+        document.getElementById('modal-overlay').classList.remove('open');
+    });
+
+    buildCards(DESTINATIONS);
+  </script>
+</body>
+</html>

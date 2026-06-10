@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TravelNest — Random Trip Generator">
+  <title>TravelNest — Trip Generator</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <style>
+    .gen-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      min-height: calc(100vh - 58px);
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+    .gen-sidebar {
+      border-right: 1px solid var(--border);
+      padding: 36px 28px;
+    }
+    .gen-main {
+      padding: 36px 36px;
+    }
+    .gen-result-img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      display: block;
+      border-radius: 2px;
+      margin-bottom: 24px;
+    }
+    .wishlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1px;
+      margin-top: 16px;
+    }
+    .wl-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+    .wl-card img { width:100%; height:90px; object-fit:cover; }
+    .wl-card .wl-body { padding: 10px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .wl-card .wl-body strong { font-size:0.82rem; color:var(--white); }
+    @media (max-width:860px) {
+      .gen-layout { grid-template-columns:1fr; }
+      .gen-sidebar { border-right:none; border-bottom:1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="masthead">
+    <span class="eyebrow">Can't Decide?</span>
+    <h1>Trip Generator</h1>
+    <p>Set your preferences and let TravelNest pick a destination for you.</p>
+  </div>
+
+  <div class="gen-layout">
+    <!-- Sidebar / controls -->
+    <div class="gen-sidebar">
+      <h2 style="font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;">Preferences</h2>
+      <div class="form-group">
+        <label>Travel Type</label>
+        <select id="pref-type">
+          <option value="">Any type</option>
+          <option value="relaxation">Relaxation</option>
+          <option value="cultural">Cultural</option>
+          <option value="adventure">Adventure</option>
+          <option value="nature">Nature</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Budget Range</label>
+        <select id="pref-budget">
+          <option value="">Any budget</option>
+          <option value="low">Budget / Backpacker</option>
+          <option value="medium">Mid-range</option>
+          <option value="high">Luxury</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="generate()" style="width:100%;justify-content:center;margin-top:4px;" id="gen-btn">
+        Generate destination
+      </button>
+      <p id="no-match" style="display:none;font-size:0.82rem;color:var(--red);margin-top:12px;">No destinations match your filters — try broadening them.</p>
+
+      <div class="ruled" style="margin-top:32px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Wishlist</h3>
+          <button onclick="clearWishlist()" style="background:none;border:none;color:var(--muted);font-size:0.75rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;">Clear</button>
+        </div>
+        <div id="wishlist-list"></div>
+      </div>
+    </div>
+
+    <!-- Result area -->
+    <div class="gen-main">
+      <!-- Placeholder -->
+      <div id="gen-placeholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;border:1px dashed var(--border);border-radius:2px;text-align:center;gap:10px;">
+        <span style="font-size:3rem;">🌍</span>
+        <p>Your destination will appear here.</p>
+      </div>
+
+      <!-- Result -->
+      <div id="gen-result" style="display:none;">
+        <img id="gen-img" class="gen-result-img" alt="">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div>
+            <span class="eyebrow" id="gen-eyebrow"></span>
+            <h2 id="gen-name" style="margin:6px 0;"></h2>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px;">
+            <button class="btn btn-outline btn-sm" onclick="generate()">Try again</button>
+            <button class="btn btn-ghost btn-sm" onclick="addWishlist()">+ Wishlist</button>
+          </div>
+        </div>
+        <p id="gen-desc" style="margin:12px 0 16px;font-size:0.9rem;max-width:560px;"></p>
+        <div id="gen-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;"></div>
+        <h3 style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Top Attractions</h3>
+        <div id="gen-attrs"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/components.js"></script>
+  <script>
+    let current = null;
+
+    function generate() {
+      const type   = document.getElementById('pref-type').value;
+      const budget = document.getElementById('pref-budget').value;
+
+      const pool = DESTINATIONS.filter(d =>
+        (!type   || d.type   === type) &&
+        (!budget || d.budget === budget)
+      );
+
+      document.getElementById('no-match').style.display = 'none';
+      if (pool.length === 0) {
+        document.getElementById('no-match').style.display = 'block';
+        return;
+      }
+
+      // Avoid repeating same destination
+      let pick = pool[Math.floor(Math.random() * pool.length)];
+      if (current && pool.length > 1) {
+        while (pick.id === current.id) pick = pool[Math.floor(Math.random() * pool.length)];
+      }
+      current = pick;
+
+      document.getElementById('gen-placeholder').style.display = 'none';
+      document.getElementById('gen-result').style.display = 'block';
+
+      document.getElementById('gen-img').src = pick.img;
+      document.getElementById('gen-img').alt = pick.name;
+      document.getElementById('gen-eyebrow').textContent = pick.continent + ' · ' + pick.type;
+      document.getElementById('gen-name').textContent = pick.name + ', ' + pick.country;
+      document.getElementById('gen-desc').textContent = pick.desc;
+
+      const tags = document.getElementById('gen-tags');
+      tags.innerHTML = '';
+      [pick.type, pick.budget + ' budget', pick.continent].forEach(t => {
+        const s = document.createElement('span');
+        s.className = 'tag tag-grey'; s.textContent = t;
+        tags.appendChild(s);
+      });
+
+      const attrs = document.getElementById('gen-attrs');
+      attrs.innerHTML = pick.attractions.map(a => `<span class="attr-pill">${a}</span>`).join('');
+    }
+
+    function addWishlist() {
+      if (!current) return;
+      const list = loadFromStorage('tn_wishlist', []);
+      if (list.find(i => i.id === current.id)) { showToast('Already in wishlist.'); return; }
+      list.unshift({ id: current.id, name: current.name, country: current.country, img: current.img });
+      saveToStorage('tn_wishlist', list);
+      renderWishlist();
+      showToast(current.name + ' added to wishlist.');
+    }
+
+    function renderWishlist() {
+      const list = loadFromStorage('tn_wishlist', []);
+      const el = document.getElementById('wishlist-list');
+      if (list.length === 0) { el.innerHTML = '<p style="font-size:0.82rem;">Your wishlist is empty.</p>'; return; }
+      el.innerHTML = list.map(item => `
+        <div class="list-item">
+          <img src="${item.img}" alt="${item.name}">
+          <div class="li-text">
+            <strong>${item.name}</strong>
+            <p>${item.country}</p>
+          </div>
+          <button onclick="removeWishlist(${item.id})" style="background:none;border:none;color:var(--muted);font-size:0.8rem;cursor:pointer;">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function removeWishlist(id) {
+      const list = loadFromStorage('tn_wishlist', []).filter(i => i.id !== id);
+      saveToStorage('tn_wishlist', list);
+      renderWishlist();
+    }
+
+    function clearWishlist() { saveToStorage('tn_wishlist', []); renderWishlist(); }
+    renderWishlist();
+  </script>
+</body>
+</html>

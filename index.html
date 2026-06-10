@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TravelNest — Your travel planning companion">
+  <meta name="theme-color" content="#e8000f">
+  <title>TravelNest</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <style>
+    /* ── HOME-SPECIFIC ── */
+    .hero-strip {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      min-height: 480px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-left {
+      padding: 60px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .hero-left h1 { margin: 14px 0 20px; }
+    .hero-left p  { font-size: 1rem; max-width: 460px; margin-bottom: 28px; }
+
+    .hero-right {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-right img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero-right .caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      padding: 40px 20px 18px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .hero-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Quote ticker */
+    .quote-ticker {
+      background: #0d0d0d;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .quote-ticker .label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--red);
+      white-space: nowrap;
+      padding-right: 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .quote-ticker .text {
+      font-size: 0.88rem;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-cell {
+      padding: 24px 28px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-cell:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: var(--serif);
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--red);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* DOTD */
+    .dotd-strip {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      border-bottom: 1px solid var(--border);
+      min-height: 260px;
+    }
+
+    .dotd-left {
+      padding: 36px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .dotd-right { overflow: hidden; }
+    .dotd-right img { width: 100%; height: 100%; object-fit: cover; }
+
+    .dotd-left h2 { margin: 8px 0 10px; }
+    .dotd-left p  { font-size: 0.9rem; max-width: 480px; margin-bottom: 18px; }
+
+    /* Featured */
+    .section-wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-head h2 { margin: 0; }
+    .section-head a  { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); }
+    .section-head a:hover { text-decoration: underline; }
+
+    @media (max-width: 860px) {
+      .hero-strip { grid-template-columns: 1fr; }
+      .hero-right { height: 260px; }
+      .dotd-strip { grid-template-columns: 1fr; }
+      .dotd-right { height: 200px; order: -1; }
+      .stats-row  { grid-template-columns: repeat(2,1fr); }
+      .hero-left  { padding: 36px 20px; }
+      .dotd-left  { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <div class="hero-strip">
+    <div class="hero-left">
+      <span class="eyebrow">Travel Planning</span>
+      <h1>Where will you go next?</h1>
+      <p>Explore destinations, calculate budgets, generate random trip ideas, and keep track of everywhere you want to visit.</p>
+      <div class="hero-btns">
+        <a href="destinations.html" class="btn btn-primary">Browse Destinations</a>
+        <a href="generator.html" class="btn btn-outline">Random Trip</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <img id="hero-img" src="" alt="Featured destination">
+      <div class="caption" id="hero-caption"></div>
+    </div>
+  </div>
+
+  <!-- Quote ticker -->
+  <div class="quote-ticker">
+    <span class="label">Quote</span>
+    <span class="text" id="quote-text"></span>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-cell"><div class="stat-num">10</div><div class="stat-label">Destinations</div></div>
+    <div class="stat-cell"><div class="stat-num">6</div><div class="stat-label">Continents</div></div>
+    <div class="stat-cell"><div class="stat-num">4</div><div class="stat-label">Travel Types</div></div>
+    <div class="stat-cell"><div class="stat-num">∞</div><div class="stat-label">Adventures</div></div>
+  </div>
+
+  <!-- Destination of the Day -->
+  <div class="dotd-strip">
+    <div class="dotd-left">
+      <span class="eyebrow">Destination of the Day</span>
+      <h2 id="dotd-name">—</h2>
+      <p id="dotd-desc"></p>
+      <div id="dotd-tags" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;"></div>
+      <a href="destinations.html" class="btn btn-ghost btn-sm">View All Destinations →</a>
+    </div>
+    <div class="dotd-right">
+      <img id="dotd-img" src="" alt="Destination of the day">
+    </div>
+  </div>
+
+  <!-- Featured Destinations -->
+  <div class="section-wrap">
+    <div class="section-head">
+      <h2>Featured Destinations</h2>
+      <a href="destinations.html">See all →</a>
+    </div>
+    <div class="grid-3" id="featured-grid"></div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/components.js"></script>
+  <script>
+    // Hero image (rotates with slideshow feel — just picks one)
+    const heroIdx = new Date().getSeconds() % DESTINATIONS.length;
+    const heroDest = DESTINATIONS[heroIdx];
+    document.getElementById('hero-img').src = heroDest.img;
+    document.getElementById('hero-img').alt = heroDest.name;
+    document.getElementById('hero-caption').textContent = heroDest.name + ' — ' + heroDest.country;
+
+    // Quote rotator
+    const QUOTES = [
+      '"Not all those who wander are lost." — J.R.R. Tolkien',
+      '"The world is a book, and those who do not travel read only one page." — Saint Augustine',
+      '"Travel is the only thing you buy that makes you richer."',
+      '"To travel is to live." — Hans Christian Andersen',
+      '"Jobs fill your pocket, adventures fill your soul."',
+    ];
+    let qi = 0;
+    const qtEl = document.getElementById('quote-text');
+    function nextQuote() { qtEl.textContent = QUOTES[qi]; qi = (qi+1) % QUOTES.length; }
+    nextQuote();
+    setInterval(nextQuote, 5000);
+
+    // Destination of the Day
+    const dotd = DESTINATIONS[new Date().getDate() % DESTINATIONS.length];
+    document.getElementById('dotd-name').textContent = dotd.name + ', ' + dotd.country;
+    document.getElementById('dotd-desc').textContent = dotd.desc;
+    document.getElementById('dotd-img').src = dotd.img;
+    document.getElementById('dotd-img').alt = dotd.name;
+    dotd.attractions.slice(0,3).forEach(a => {
+      const s = document.createElement('span');
+      s.className = 'tag tag-grey'; s.textContent = a;
+      document.getElementById('dotd-tags').appendChild(s);
+    });
+
+    // Featured grid
+    const grid = document.getElementById('featured-grid');
+    DESTINATIONS.slice(0,6).forEach((d, i) => {
+      const div = document.createElement('div');
+      div.className = 'card dest-card';
+      div.onclick = () => location.href = 'destinations.html';
+      div.innerHTML = `
+        <div class="card-img">
+          <img src="${d.img}" alt="${d.name}" loading="lazy">
+          <span class="card-num">0${i+1}</span>
+        </div>
+        <div class="card-body">
+          <h3>${d.name}</h3>
+          <p class="sub">${d.country} · ${d.continent}</p>
+        </div>
+        <div class="card-foot">
+          <span>${d.type}</span>
+          <span>${d.budget}</span>
+        </div>
+      `;
+      grid.appendChild(div);
+    });
+  </script>
+</body>
+</html>
