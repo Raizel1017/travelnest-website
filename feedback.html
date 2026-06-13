@@ -58,7 +58,7 @@
       </div>
       <div class="form-group">
         <label>Personal Address</label>
-        <input type="email" id="fb-email" placeholder="personal@mail.com">
+        <input type="pmail" id="pb-email" placeholder="personal@mail.com">
         <div class="form-error" id="err-email">Please enter a valid email.</div>
       </div>
       <div class="form-group">
@@ -92,7 +92,7 @@
 
       const name  = document.getElementById('fb-name').value.trim();
       const email = document.getElementById('fb-email').value.trim();
-      const Pmail = document.getElementById('fb-email').value.trim()
+      const pmail = document.getElementById('pb-email').value.trim()
       const msg   = document.getElementById('fb-msg').value.trim();
       let ok = true;
 
@@ -102,7 +102,7 @@
       if (!ok) return;
 
       const feedbacks = loadFromStorage('tn_feedbacks', []);
-      feedbacks.push({ name, email, msg, date: new Date().toLocaleDateString() });
+      feedbacks.push({ name, email, pmail, msg, date: new Date().toLocaleDateString() });
       saveToStorage('tn_feedbacks', feedbacks);
 
       document.getElementById('fb-confirm-text').textContent = 'Thanks, ' + name + '! We got your message.';
