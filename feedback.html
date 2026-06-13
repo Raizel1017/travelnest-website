@@ -98,6 +98,7 @@
 
       if (!name)  { document.getElementById('err-name').classList.add('visible'); document.getElementById('fb-name').classList.add('error'); ok=false; }
       if (!email || !email.includes('@') || !email.includes('.')) { document.getElementById('err-email').classList.add('visible'); document.getElementById('fb-email').classList.add('error'); ok=false; }
+      if (!pmail || !pmail.includes('@') || !pmail.includes('.')) { document.getElementById('err-email').classList.add('visible'); document.getElementById('pb-email').classList.add('error'); ok=false; }
       if (msg.length < 10) { document.getElementById('err-msg').classList.add('visible'); document.getElementById('fb-msg').classList.add('error'); ok=false; }
       if (!ok) return;
 
